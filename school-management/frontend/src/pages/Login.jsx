@@ -1,9 +1,11 @@
+import StudentLogin from "#components/students/StudentLogin.jsx";
 
 const Login = () => {
   return (
-    <div>
-        <h1>Hi from Login Page</h1>
-    </div>
+    <>
+        <h1 className="text-3xl">Student Login</h1>
+        <StudentLogin />
+    </>
   )
 }
 

@@ -7,6 +7,8 @@ import NotFound from '../pages/NotFound';
 import Layout from '../layouts/Layout';
 
 
+export const STUDENT_DASHOARD_ROUTE = '/student/dashboard'
+
 export const router = createBrowserRouter([
     {
         element: <Layout />,
@@ -26,6 +28,10 @@ export const router = createBrowserRouter([
         {
             path:'/users',
             element: <Users />
+        },
+        {
+            path:STUDENT_DASHOARD_ROUTE,
+            element: <h1>Hi Students</h1>
         },
         {
             path:'*',
