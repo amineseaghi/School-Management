@@ -36,10 +36,13 @@ export default function StudentLogin() {
   // 3. معالجة الإرسال (Submit Handler)
   const onSubmit = async (values) => {
     try {
-      await axiosClient.get('/sanctum/csrf-cookie');
+      await axiosClient.get('/sanctum/csrf-cookie', {
+        baseURL: import.meta.env.VITE_BACKEND_URL
+      });
       const response = await axiosClient.post('/login', values);
 
       if (response.status === 204 || response.status === 200) {
+        window.localStorage.setItem('ACCESS_TOKEN', 'test')
         navigate(STUDENT_DASHOARD_ROUTE);
       }
     } catch (error) {
