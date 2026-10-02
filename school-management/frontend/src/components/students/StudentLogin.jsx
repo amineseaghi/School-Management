@@ -5,20 +5,20 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { axiosClient } from "#api/axios.js";
 import { useNavigate } from "react-router-dom";
-import { STUDENT_DASHOARD_ROUTE } from "#router/index.jsx";
+import { STUDENT_DASHOARD_ROUTE } from "@/router/routes.js";
+import { useUserContext } from "#context/UserContext.jsx";
 
-// 1. تحديد الـ Schema باستخدام Zod
+// 1. Zod Schema
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").min(8).max(50),
   password: z.string().min(8, "The password must be at least 8 characters long.").max(30),
 });
 
 export default function StudentLogin() {
+    const { login } = useUserContext(); // Ghi login mn context kafi
     const navigate = useNavigate();
 
-    // 2. إعداد useForm مرة وحدة وبشكل صحيح باش form.setError tkhdm
     const form = useForm({
       resolver: zodResolver(loginSchema),
       defaultValues: {
@@ -30,39 +30,40 @@ export default function StudentLogin() {
     const {
       register,
       handleSubmit,
+      setError,
       formState: { errors, isSubmitting },
     } = form;
 
-  // 3. معالجة الإرسال (Submit Handler)
+  // 2. Submit Handler S-sahih (Bla doublon)
   const onSubmit = async (values) => {
+    console.log("Values mssifta:", values)
     try {
-      await axiosClient.get('/sanctum/csrf-cookie', {
-        baseURL: import.meta.env.VITE_BACKEND_URL
-      });
-      const response = await axiosClient.post('/login', values);
+        const response = await login(values.email, values.password);
 
-      if (response.status === 204 || response.status === 200) {
-        window.localStorage.setItem('ACCESS_TOKEN', 'test')
-        navigate(STUDENT_DASHOARD_ROUTE);
-      }
+        if (response && (response.status === 204 || response.status === 200)) {
+            navigate(STUDENT_DASHOARD_ROUTE);
+        }
     } catch (error) {
-      console.log("Full error.response.data:", error.response?.data);
+        console.log("Full error response:", error.response);
+        console.log("Error config:", error.config);
 
-      if (error.response && error.response.status === 422) {
-        // N-chofo wach l-error kaybayan f message wla f ḥaja okhra
-        const responseData = error.response.data;
+        if (error.response && error.response.status === 422) {
+            const responseData = error.response.data;
 
-        if (responseData.message) {
-          console.log("Error Message:", responseData.message);
+            // 7mi rasek ila kanat errors.email wla email direct
+            const emailError = responseData.errors?.email || responseData.email;
+
+            if (emailError) {
+                setError('email', {
+                    message: Array.isArray(emailError) ? emailError[0] : emailError
+                });
+            } else if (responseData.message) {
+                // Ila kan error 3am (bhal Invalid credentials)
+                setError('password', {
+                    message: responseData.message
+                });
+            }
         }
-
-        // Ila kan Laravel kay-sifft l-errors مباشّرة (bhal responseData.email)
-        if (responseData.email) {
-          form.setError('email', {
-            message: Array.isArray(responseData.email) ? responseData.email[0] : responseData.email
-          });
-        }
-      }
     }
   };
 
@@ -71,7 +72,7 @@ export default function StudentLogin() {
       <h2 className="text-2xl font-bold mb-6 text-center">Login In</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* حقل البريد الإلكتروني */}
+        {/* Email Field */}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -85,7 +86,7 @@ export default function StudentLogin() {
           )}
         </div>
 
-        {/* حقل كلمة المرور */}
+        {/* Password Field */}
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -98,12 +99,11 @@ export default function StudentLogin() {
           )}
         </div>
 
-        {/* زر الإرسال */}
+        {/* Submit Button */}
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? "Registration in progress..." : "Login"}
+          {isSubmitting ? "Logging in..." : "Login"}
         </Button>
       </form>
     </div>
   );
 }
-

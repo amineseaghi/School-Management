@@ -1,14 +1,16 @@
-import { STUDENT_DASHOARD_ROUTE } from "#router/index.jsx"
+import { STUDENT_DASHOARD_ROUTE } from "@/router/routes.js"
 import { Link, Outlet } from "react-router-dom"
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUserContext } from "#context/UserContext.jsx";
 
 const GuestLayout = () => {
 
     const navigate = useNavigate()
+    const context = useUserContext()
 
     useEffect(() => {
-        if (window.localStorage.getItem('ACCESS_TOKEN')) {
+        if (context.authenticated) {
         navigate(STUDENT_DASHOARD_ROUTE)
         }
 
